@@ -1,0 +1,180 @@
+formatVersion: 1
+inputs:
+  machineCount:
+    type: integer
+    title: Number of Machines per environment
+    min: 1
+    max: 100
+    default: 1
+  cpuCount:
+    type: integer
+    title: CPUs
+    default: 1
+  memoryGb:
+    type: integer
+    title: Memory (GB)
+    default: 1
+  image:
+    type: string
+    title: Operating System
+    default: ubuntu22
+    oneOf:
+      - title: Ubuntu 2022
+        const: ubuntu22
+      - title: Ubuntu 2020
+        const: ubuntu20
+  LBPort:
+    type: integer
+    title: Load Balancer Port
+    default: 80
+    min: 1
+    max: 65536
+  LBProtocol:
+    type: string
+    title: Load Balancer Protocol
+    default: HTTP
+    enum:
+      - TCP
+      - HTTP
+  DenyAccess:
+    type: string
+    title: Production Access
+    default: Deny
+    enum:
+      - Deny
+      - Allow
+  hasLoadBalancer:
+    type: boolean
+    title: Deploy Load Balancer?
+    default: false
+  diskConfig:
+    type: array
+    title: Add Additional Disks
+    minItems: 0
+    maxItems: 5
+    items:
+      type: object
+      properties:
+        size:
+          type: number
+          title: Size GB
+          default: 5
+          maximum: 200
+resources:
+  VM_PROD:
+    type: Cloud.vSphere.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    allocatePerInstance: true
+    properties:
+      count: ${input.machineCount}
+      cpuCount: ${input.cpuCount}
+      totalMemoryMB: ${input.memoryGb * 1024}
+      attachedDisks: ${map_to_object(slice(resource.prodDisk[*].id, length(input.diskConfig) * count.index, length(input.diskConfig) * (count.index +1)), "source")}
+      image: ${input.image}
+      networks:
+        - network: ${resource.NETWORK_PROD.id}
+          assignment: static
+          securityGroups:
+            - ${resource.Cloud_SecurityGroup_1.id}
+      constraints:
+        - tag: env:prod
+  VM_DEV:
+    type: Cloud.vSphere.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 1
+    allocatePerInstance: true
+    properties:
+      count: ${input.machineCount}
+      cpuCount: ${input.cpuCount}
+      totalMemoryMB: ${input.memoryGb * 1024}
+      attachedDisks: ${map_to_object(slice(resource.devDisk[*].id, length(input.diskConfig) * count.index, length(input.diskConfig) * (count.index +1)), "source")}
+      image: ${input.image}
+      networks:
+        - network: ${resource.NETWORK_DEV.id}
+          assignment: static
+      constraints:
+        - tag: env:dev
+  LB:
+    type: Cloud.NSX.LoadBalancer
+    metadata:
+      layoutPosition:
+        - 0
+        - 2
+    properties:
+      count: '${input.hasLoadBalancer == true ? 1 : 0}'
+      routes:
+        - protocol: ${input.LBProtocol}
+          port: ${input.LBPort}
+          instancePort: ${input.LBPort}
+          instanceProtocol: ${input.LBProtocol}
+          algorithm: ROUND_ROBIN
+          healthCheckConfiguration:
+            healthyThreshold: 2
+            unhealthyThreshold: 3
+            protocol: HTTP
+            intervalSeconds: 15
+            urlPath: /
+            httpMethod: GET
+            port: ${input.LBPort}
+      instances: ${resource.VM_PROD[*].id}
+      network: ${resource.NETWORK_PROD.id}
+  NETWORK_DEV:
+    type: Cloud.NSX.Network
+    metadata:
+      layoutPosition:
+        - 1
+        - 0
+    properties:
+      networkType: existing
+      constraints:
+        - tag: env:dev
+  NETWORK_PROD:
+    type: Cloud.NSX.Network
+    metadata:
+      layoutPosition:
+        - 2
+        - 0
+    properties:
+      networkType: existing
+      constraints:
+        - tag: env:prod
+  Cloud_SecurityGroup_1:
+    type: Cloud.SecurityGroup
+    metadata:
+      layoutPosition:
+        - 0
+        - 3
+    properties:
+      securityGroupType: new
+      rules:
+        - name: BLOCK_DEV_PROD
+          direction: inbound
+          protocol: any
+          ports: any
+          access: ${input.DenyAccess}
+          source: ${resource.NETWORK_DEV.networkCidr}
+  prodDisk:
+    type: Cloud.vSphere.Disk
+    metadata:
+      layoutPosition:
+        - 0
+        - 4
+    allocatePerInstance: true
+    properties:
+      capacityGb: ${input.diskConfig[count.index % length(input.diskConfig)].size}
+      count: ${input.machineCount * length(input.diskConfig)}
+  devDisk:
+    type: Cloud.vSphere.Disk
+    metadata:
+      layoutPosition:
+        - 0
+        - 5
+    allocatePerInstance: true
+    properties:
+      capacityGb: ${input.diskConfig[count.index % length(input.diskConfig)].size}
+      count: ${input.machineCount * length(input.diskConfig)}
