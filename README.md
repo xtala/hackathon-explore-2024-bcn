@@ -5,13 +5,22 @@
 ### Automating with Aria Automation and Terraform
 ---
 
-## The Team
+## The Team (Vegas)
 * Stephan (C)
 * Lucho
 * Konstantinos
 * Evert
 * Francisco
 * James
+
+## The Team (Barcelona)
+* Danish Dude (Rene)
+* Pure Storage Dude
+* Robert from ITQ (talentless)
+* Belgium Dude 1
+* Belgium Dude 2
+* Belgium Dude 3
+* 
 
 ## The Mission
 Automating anything can be a daunting task with many ways to achieve an automation goal.  Virtual Machines are at the center of any infrastructure, responsible for countless deployment hours.  The ability to automate the deployment of these is a easy win for many an organisation and a great place to begin the journey, saving time and resources that could be better spent on innovation and forward thinking.
