@@ -63,16 +63,18 @@ jobs:
       run:
         shell: powershell
     steps:
-    # got the terraform folder
-    - name: ChangeFolder
-      run: cd ../../Terraform
-      # got the terraform folder
-    - name: Show dir
-      run: pwd
 
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
+
+    # got the terraform folder
+    - name: ChangeFolder
+      run: cd ../../Terraform
+
+    # got the terraform folder
+    - name: Show dir
+      run: pwd
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
