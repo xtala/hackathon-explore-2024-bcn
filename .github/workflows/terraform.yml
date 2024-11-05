@@ -65,7 +65,10 @@ jobs:
     steps:
     # got the terraform folder
     - name: ChangeFolder
-      run: cd ../../terraform
+      run: cd ../..
+      # got the terraform folder
+    - name: Show dir
+      run: Get-Location
 
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
