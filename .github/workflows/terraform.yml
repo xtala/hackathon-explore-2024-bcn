@@ -65,7 +65,7 @@ jobs:
     steps:
     # got the terraform folder
     - name: ChangeFolder
-      run: cd ../..
+      run: cd ../../Terraform
       # got the terraform folder
     - name: Show dir
       run: pwd
