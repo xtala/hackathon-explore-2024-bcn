@@ -61,7 +61,7 @@ jobs:
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
     # got the terraform folder
     - name: ChangeFolder
