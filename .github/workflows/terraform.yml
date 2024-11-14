@@ -62,6 +62,7 @@ jobs:
     defaults:
       run:
         shell: powershell
+        working-directory: ./Terraform
     steps:
 
     # Checkout the repository to the GitHub Actions runner
