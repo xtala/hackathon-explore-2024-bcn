@@ -1,4 +1,9 @@
 terraform {
+  cloud { 
+    organization = "Amcom-org" 
+    workspaces { 
+      name = "hackathon-explore-2024-bcn" 
+  } 
   required_providers {
     vra = {
       source  = "vmware/vra"
